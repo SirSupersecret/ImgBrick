@@ -56,38 +56,41 @@ namespace ImgBrick
         private static void ReadArguments(String[] args){
             //check if enough arguments are given
             if(args.Length < 1){
-                Help();
+                Console.Error.WriteLine("ERROR: Not enough arguments given.");
+                System.Console.WriteLine("'imgbrick -h' for more info.");
                 Environment.Exit(0);
             }
 
-            if(args[0] == "-h" || args[0] == "--help"){
+            if(args[0] == "-h" || args[0] == "--help" || args[0] == "help"){
                 Help();
                 Environment.Exit(0);
             }
 
             //check if selected file exists
             if(!File.Exists(args[0])){
-                Console.Error.WriteLine("This path does not exist.");
-                PrintUsage();
+                Console.Error.WriteLine("ERROR: This path does not exist.");
+                System.Console.WriteLine("'imgbrick -h' for more info.");
                 Environment.Exit(0);
             }
 
             //check if selected file is supported
             if (!imageExtensions.Contains(Path.GetExtension(args[0]).ToUpperInvariant()))
             {
-                Console.Error.WriteLine("This filetype is not supported.");
+                Console.Error.WriteLine("ERROR: This filetype is not supported.");
                 PrintSupportedFiletypes();
+                System.Console.WriteLine("'imgbrick -h' for more info.");
                 Environment.Exit(0);
             }
 
             if(args.Length < 2){
                 resY = defaultRes;
                 System.Console.WriteLine("No resolution target given, hence falling back to default resolution: " + defaultRes);
+                System.Console.WriteLine("'imgbrick -h' for more info.");
             }
             else if(!int.TryParse(args[1], out resY))
             {
-                Console.Error.WriteLine("NaN");
-                PrintUsage();
+                Console.Error.WriteLine("ERROR: NaN");
+                System.Console.WriteLine("'imgbrick -h' for more info.");
                 Environment.Exit(0);
             }
 
@@ -96,9 +99,8 @@ namespace ImgBrick
 
         static void Help(){
             Console.WriteLine("ImgBrick converts normal images into low-res version reduced to a given color palette.");
-            Console.WriteLine("This can be used to easily plan a LEGO-picture (thus the name \"ImgBrick\").\n");
+            Console.WriteLine("This can be used to easily plan a LEGO-picture (thus the name \"ImgBrick\").\n\n");
             PrintUsage();
-            PrintSupportedFiletypes();
         }
 
         static void PrintVersion(){
@@ -106,15 +108,34 @@ namespace ImgBrick
         }
 
         static void PrintUsage(){
-            Console.WriteLine("Usage: imgbrick [path-to-source] [target-resolution-vertical] [path-to-color_palette]");   
+            Console.WriteLine("Usage: imgbrick [path-to-source] [target-resolution-vertical] [path-to-color_palette]\n");
+            PrintSupportedFiletypes();
+            System.Console.Write("target-resolution-vertical:  ");
+            System.Console.WriteLine("Defines y-resolution.");
+            System.Console.Write("                             ");
+            System.Console.WriteLine("Aspect ratio is matched automatically.");
+            System.Console.Write("                             ");
+            System.Console.WriteLine("Fallback to 32 if no value is given.\n");
+            System.Console.Write("path-to-color_palette:       ");
+            System.Console.WriteLine("Path to the color palette containing the allowed colors for a given image.");
+            System.Console.Write("                             ");
+            System.Console.WriteLine("Non-allowed colors get changed to the mathematically closest allowed color.");
+            System.Console.Write("                             ");
+            System.Console.WriteLine("Formatting: [file-name].csv");
+            System.Console.Write("                                         ");
+            System.Console.WriteLine("first column: '[r], [g], [b]");
+            System.Console.Write("                                         ");
+            System.Console.WriteLine("one color per row, second column and onward are ignored");
+            System.Console.Write("                             ");
+            System.Console.WriteLine("Fallback to integrated color palette configured for locally avaliable 1x1 LEGO bricks.");
         }
 
         static void PrintSupportedFiletypes(){
-            Console.Error.Write("Supported filetypes:  ");
+            Console.Error.Write("Supported source filetypes:  ");
             foreach (var element in imageExtensions)
             {
                 Console.Error.WriteLine(element);
-                Console.Error.Write("                      ");    
+                Console.Error.Write("                             ");    
             }
             Console.Error.WriteLine();
         }
