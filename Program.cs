@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -12,15 +13,23 @@ namespace ImgBrick
         static readonly string version = "0.1.1a";
         static readonly int defaultRes = 32;
         static readonly List<string> imageExtensions = new List<string> { ".JPG", ".JPEG", ".BMP", ".PNG", ".GIF", ".TIFF" };
+        static List<Vector3> palette = new List<Vector3>();
 
-        static string path_image;
-        static int resX, resY;
+        static string path_image = "resources/ImgBrick.png";
+        static string path_palette = "resources/ColorPalette.csv";
+        static int resX; 
+        static int resY = defaultRes;
         static Image image;
+        static bool demoMode;
         static void Main(string[] args)
         {
+
             PrintVersion();
             ReadArguments(args);
 
+            System.Console.WriteLine("Loading color palette form " + path_palette);
+            ReadPalette(path_palette);
+            
             System.Console.WriteLine("Loading image from " + path_image);
             image = Image.FromFile(path_image);
 
@@ -29,8 +38,25 @@ namespace ImgBrick
             Console.WriteLine("Conversion succesful!");
             SaveImage(ImageFormat.Png);
         }
+
+        static void ReadPalette(string path){
+            var reader = new StreamReader(File.OpenRead(path));
+            while (!reader.EndOfStream)
+            {
+                var line = reader.ReadLine();
+                var values = line.Split(",");
+                var colors = values[0].Split(" ");
+                palette.Add(new Vector3(int.Parse(colors[0]), int.Parse(colors[1]), int.Parse(colors[2])));
+            }
+        }
         static void SaveImage(ImageFormat f){
-            string path_result = Path.GetDirectoryName(path_image);
+            string path_result;
+            if(demoMode){
+                path_result = Directory.GetParent(Environment.CurrentDirectory).FullName;
+            }else{
+                path_result = Path.GetDirectoryName(path_image);
+            }
+            
             path_result += "/";
             path_result += Path.GetFileNameWithoutExtension(path_image);
             path_result += "_BRICKIFIED.";
@@ -40,12 +66,23 @@ namespace ImgBrick
 
             image.Save(path_result, f);
         }
+
         private static void ProcessImage(){
-            resX = image.Size.Width*resY/image.Size.Height;
+            resX = image.Size.Width / image.Size.Height * resY;
             image = ResizeImage(image, new Size(resX, resY));
 
             System.Console.Write("New Resolution is ");
             System.Console.WriteLine(image.Size.ToString());
+
+
+            //image = LimitImageColors(image, palette);
+        }
+
+        static Image LimitImageColors(Image imgToEdit, List<Vector3> colors){
+            Image newImage = imgToEdit;
+
+
+            return newImage;
         }
 
         public static Image ResizeImage(Image imgToResize, Size size)
@@ -56,9 +93,16 @@ namespace ImgBrick
         private static void ReadArguments(String[] args){
             //check if enough arguments are given
             if(args.Length < 1){
-                Console.Error.WriteLine("ERROR: Not enough arguments given.");
+                Console.WriteLine("No arguments given - DEMO mode activated.");
+                System.Console.WriteLine("Using default image and color palette at fallback resolution (" + defaultRes + ").");
                 System.Console.WriteLine("'imgbrick -h' for more info.");
-                Environment.Exit(0);
+
+                path_image = Path.Combine(Environment.CurrentDirectory, path_image);
+                path_palette = Path.Combine(Environment.CurrentDirectory, path_palette);
+
+                demoMode = true;
+                
+                return;
             }
 
             if(args[0] == "-h" || args[0] == "--help" || args[0] == "help"){
@@ -81,12 +125,13 @@ namespace ImgBrick
                 System.Console.WriteLine("'imgbrick -h' for more info.");
                 Environment.Exit(0);
             }
-
+            
             if(args.Length < 2){
                 resY = defaultRes;
                 System.Console.WriteLine("No resolution target given, hence falling back to default resolution: " + defaultRes);
                 System.Console.WriteLine("'imgbrick -h' for more info.");
             }
+            
             else if(!int.TryParse(args[1], out resY))
             {
                 Console.Error.WriteLine("ERROR: NaN");
@@ -121,11 +166,11 @@ namespace ImgBrick
             System.Console.Write("                             ");
             System.Console.WriteLine("Non-allowed colors get changed to the mathematically closest allowed color.");
             System.Console.Write("                             ");
-            System.Console.WriteLine("Formatting: [file-name].csv");
+            System.Console.WriteLine("Formatting: [file-name].csv\n");
             System.Console.Write("                                         ");
-            System.Console.WriteLine("first column: '[r], [g], [b]");
+            System.Console.WriteLine("[r] [g] [b],[ignored...]");
             System.Console.Write("                                         ");
-            System.Console.WriteLine("one color per row, second column and onward are ignored");
+            System.Console.WriteLine("one color per row, color values seperated by [space]; second column and onward are ignored");
             System.Console.Write("                             ");
             System.Console.WriteLine("Fallback to integrated color palette configured for locally avaliable 1x1 LEGO bricks.");
         }
