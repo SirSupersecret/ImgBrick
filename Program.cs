@@ -68,7 +68,8 @@ namespace ImgBrick
         }
 
         private static void ProcessImage(){
-            resX = image.Size.Width / image.Size.Height * resY;
+            float ratio = image.Size.Width * 1f / image.Size.Height * 1f;
+            resX = Convert.ToInt32(ratio * resY);
             image = ResizeImage(image, new Size(resX, resY));
 
             System.Console.Write("New Resolution is ");
@@ -109,8 +110,6 @@ namespace ImgBrick
             Vector3 pixelColor = new Vector3(pixel.R, pixel.G, pixel.B);
             Vector3 newPixelColor = new Vector3();
             float bestDistance = -1f;
-
-            System.Console.WriteLine(pixelColor);
             
             foreach(var c in colors){
                 var distance = Vector3.Distance(c, pixelColor);
@@ -126,7 +125,7 @@ namespace ImgBrick
                     newPixelColor = c;
                 }
             }
-            
+
             Color newColor = Color.FromArgb((int)newPixelColor.X, (int)newPixelColor.Y, (int)newPixelColor.Z);
             return newColor;
         }
