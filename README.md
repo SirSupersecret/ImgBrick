@@ -6,10 +6,13 @@ To achieve this the input image is scaled down to a lower resolution and the col
 ## Installation
 ### Linux
 Download the .deb File and install it using your package manager.
+
 *Note: Only Debian based distros are currently supported, other distros need to be built manually.*
+
 
 ### Windows
 Download the Win10.zip file, extract it and run it using CMD.
+
 
 ## Usage
 `imgbrick [path-to-source] [target-resolution-vertical]`
