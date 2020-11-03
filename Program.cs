@@ -75,14 +75,60 @@ namespace ImgBrick
             System.Console.WriteLine(image.Size.ToString());
 
 
-            //image = LimitImageColors(image, palette);
+            image = LimitImageColors(image, palette);
         }
 
         static Image LimitImageColors(Image imgToEdit, List<Vector3> colors){
-            Image newImage = imgToEdit;
+            Bitmap map = (Bitmap)imgToEdit;
 
+            //
+            //improvement idea: use Bitmap.Lockbits and Marshal.Copy;
+            //requires further research
+            //
 
-            return newImage;
+            int width = map.Width;
+            int height = map.Height;
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    Color oldPixel = map.GetPixel(x, y);
+             
+                    // calculate new pixel value
+
+                    Color newPixel = GetClosestColor(oldPixel, palette);
+ 
+                    map.SetPixel(x, y, newPixel);
+                }
+            }
+
+            return (Image) map;
+        }
+
+        static Color GetClosestColor(Color pixel, List<Vector3> colors){
+            Vector3 pixelColor = new Vector3(pixel.R, pixel.G, pixel.B);
+            Vector3 newPixelColor = new Vector3();
+            float bestDistance = -1f;
+
+            System.Console.WriteLine(pixelColor);
+            
+            foreach(var c in colors){
+                var distance = Vector3.Distance(c, pixelColor);
+
+                if(bestDistance < 0){
+                    Vector3.Distance(c, pixelColor);
+                    newPixelColor = c;
+                    bestDistance = distance;
+                }
+
+                if(distance <= bestDistance){
+                    bestDistance = distance;
+                    newPixelColor = c;
+                }
+            }
+            
+            Color newColor = Color.FromArgb((int)newPixelColor.X, (int)newPixelColor.Y, (int)newPixelColor.Z);
+            return newColor;
         }
 
         public static Image ResizeImage(Image imgToResize, Size size)
