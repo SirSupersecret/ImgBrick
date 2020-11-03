@@ -11,7 +11,7 @@ namespace ImgBrick
     class Program
     {
         //version: major_version.minor_version.build
-        static readonly string version = "0.2.2";
+        static readonly string version = "0.2.3";
         static readonly int defaultRes = 32;
         static readonly List<string> imageExtensions = new List<string> { ".JPG", ".JPEG", ".BMP", ".PNG", ".GIF", ".TIFF" };
         static List<Vector3> palette = new List<Vector3>();
@@ -29,14 +29,14 @@ namespace ImgBrick
             ReadArguments(args);
 
             var assembly = Assembly.GetEntryAssembly();
-            var integratedPalette = assembly.GetManifestResourceStream("ImgBrick.resources.ColorPalette.csv");
-            var demoImage = assembly.GetManifestResourceStream("ImgBrick.resources.ImgBrick.png");
+            var integratedPalette = assembly.GetManifestResourceStream("imgbrick.resources.ColorPalette.csv");
+            var demoImage = assembly.GetManifestResourceStream("imgbrick.resources.ImgBrick.png");
 
             if(demoMode || defaultPalette){
-                System.Console.WriteLine("Loading color palette form internal");
+                System.Console.WriteLine("Loading color palette from internal");
                 ReadPalette(integratedPalette);
             }else{
-                System.Console.WriteLine("Loading color palette form " + path_palette);
+                System.Console.WriteLine("Loading color palette from " + path_palette);
                 ReadPalette(path_palette);
             }
 
@@ -47,7 +47,6 @@ namespace ImgBrick
                 System.Console.WriteLine("Loading image from " + path_image);
                 image = Image.FromFile(path_image);
             }
-            
 
             ProcessImage();
 
@@ -79,11 +78,8 @@ namespace ImgBrick
         }
         static void SaveImage(ImageFormat f){
             string path_result;
-            if(demoMode){
-                path_result = Directory.GetParent(Environment.CurrentDirectory).FullName;
-            }else{
-                path_result = Path.GetDirectoryName(path_image);
-            }
+
+            path_result = Directory.GetCurrentDirectory();
             
             path_result += "/";
             path_result += Path.GetFileNameWithoutExtension(path_image);
@@ -165,6 +161,9 @@ namespace ImgBrick
         }
 
         private static void ReadArguments(String[] args){
+            //change when custom color palette support is added
+            defaultPalette = true;
+
             //check if enough arguments are given
             if(args.Length < 1){
                 Console.WriteLine("No arguments given - DEMO mode activated.");
