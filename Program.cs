@@ -4,34 +4,50 @@ using System.Numerics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Reflection;
 
 namespace ImgBrick
 {
     class Program
     {
         //version: major_version.minor_version.build
-        static readonly string version = "0.1.1a";
+        static readonly string version = "0.2.2";
         static readonly int defaultRes = 32;
         static readonly List<string> imageExtensions = new List<string> { ".JPG", ".JPEG", ".BMP", ".PNG", ".GIF", ".TIFF" };
         static List<Vector3> palette = new List<Vector3>();
 
-        static string path_image = "resources/ImgBrick.png";
-        static string path_palette = "resources/ColorPalette.csv";
+        static string path_image;
+        static string path_palette;
         static int resX; 
         static int resY = defaultRes;
         static Image image;
-        static bool demoMode;
+        static bool demoMode, defaultPalette;
         static void Main(string[] args)
         {
 
             PrintVersion();
             ReadArguments(args);
 
-            System.Console.WriteLine("Loading color palette form " + path_palette);
-            ReadPalette(path_palette);
+            var assembly = Assembly.GetEntryAssembly();
+            var integratedPalette = assembly.GetManifestResourceStream("ImgBrick.resources.ColorPalette.csv");
+            var demoImage = assembly.GetManifestResourceStream("ImgBrick.resources.ImgBrick.png");
+
+            if(demoMode || defaultPalette){
+                System.Console.WriteLine("Loading color palette form internal");
+                ReadPalette(integratedPalette);
+            }else{
+                System.Console.WriteLine("Loading color palette form " + path_palette);
+                ReadPalette(path_palette);
+            }
+
+            if(demoMode){
+                System.Console.WriteLine("Loading image from internal");
+                image = Image.FromStream(demoImage);
+            }else{
+                System.Console.WriteLine("Loading image from " + path_image);
+                image = Image.FromFile(path_image);
+            }
             
-            System.Console.WriteLine("Loading image from " + path_image);
-            image = Image.FromFile(path_image);
 
             ProcessImage();
 
@@ -39,8 +55,20 @@ namespace ImgBrick
             SaveImage(ImageFormat.Png);
         }
 
+        static void ReadPalette(Stream path){
+
+            var reader = new StreamReader(path);
+            while (!reader.EndOfStream)
+            {
+                var line = reader.ReadLine();
+                var values = line.Split(",");
+                var colors = values[0].Split(" ");
+                palette.Add(new Vector3(int.Parse(colors[0]), int.Parse(colors[1]), int.Parse(colors[2])));
+            }
+        }
         static void ReadPalette(string path){
-            var reader = new StreamReader(File.OpenRead(path));
+
+            var reader = new StreamReader(path);
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine();
@@ -59,6 +87,7 @@ namespace ImgBrick
             
             path_result += "/";
             path_result += Path.GetFileNameWithoutExtension(path_image);
+            if(demoMode) path_result += "ImgBrick";
             path_result += "_BRICKIFIED.";
             path_result += f.ToString().ToLowerInvariant();
 
@@ -142,9 +171,6 @@ namespace ImgBrick
                 System.Console.WriteLine("Using default image and color palette at fallback resolution (" + defaultRes + ").");
                 System.Console.WriteLine("'imgbrick -h' for more info.");
 
-                path_image = Path.Combine(Environment.CurrentDirectory, path_image);
-                path_palette = Path.Combine(Environment.CurrentDirectory, path_palette);
-
                 demoMode = true;
                 
                 return;
@@ -198,7 +224,7 @@ namespace ImgBrick
         }
 
         static void PrintUsage(){
-            Console.WriteLine("Usage: imgbrick [path-to-source] [target-resolution-vertical] [path-to-color_palette]\n");
+            Console.WriteLine("Usage: imgbrick [path-to-source] [target-resolution-vertical]\n");
             PrintSupportedFiletypes();
             System.Console.Write("target-resolution-vertical:  ");
             System.Console.WriteLine("Defines y-resolution.");
@@ -218,6 +244,8 @@ namespace ImgBrick
             System.Console.WriteLine("one color per row, color values seperated by [space]; second column and onward are ignored");
             System.Console.Write("                             ");
             System.Console.WriteLine("Fallback to integrated color palette configured for locally avaliable 1x1 LEGO bricks.");
+            System.Console.Write("                             ");
+            System.Console.WriteLine("Custom color palettes are currently not supported.");
         }
 
         static void PrintSupportedFiletypes(){

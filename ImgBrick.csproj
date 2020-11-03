@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Version>0.2.2</Version>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
@@ -8,7 +9,11 @@
   <ItemGroup>
     <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
-    <EmbeddedResource Include="resources\ImgBrick.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="resources/ColorPalette.csv" />
+    <EmbeddedResource Include="resources/ImgBrick.png" />
   </ItemGroup>
 
 </Project>
